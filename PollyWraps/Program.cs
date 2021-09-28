@@ -9,14 +9,14 @@ namespace PollyWraps
         static int runs = 0;
         static async Task Main(string[] args)
         {
-            var fallbackPolicy = Policy.Handle<Exception>()
-                .Fallback(() => Write("körte"));
-
             var retryPolicy = Policy
                 .Handle<Exception>()
-                .Retry(5);
+                .Retry(10);
 
-            Policy.Wrap(retryPolicy, fallbackPolicy).Execute(() => Write("alma"));
+            var fallbackPolicy = Policy.Handle<Exception>()
+                .Fallback(() => retryPolicy.Execute(()=>Write("körte")));
+
+            fallbackPolicy.Execute(() => Write("alma"));           
             Console.ReadLine();
         }
 
@@ -24,9 +24,9 @@ namespace PollyWraps
         {
             runs++;
             var rnd = new Random();
-            if (text == "alma" || runs<3)
+            if (text == "alma" || runs<5)
             {
-                Console.WriteLine("Ex");
+                Console.WriteLine("Ex: "+text);
                 throw new Exception("ex happened!");
             }
 
